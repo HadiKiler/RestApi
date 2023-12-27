@@ -1,0 +1,7 @@
+from rest_framework.routers import DefaultRouter
+from person.viewset import ProductViewSet
+
+
+router = DefaultRouter()
+router.register('persons', ProductViewSet, basename='persons')
+urlpatterns = router.urls #????????????????????????
