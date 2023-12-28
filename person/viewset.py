@@ -1,9 +1,11 @@
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets
 from .models import Person
 from .serializer import PersonSerializer
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 
 
-class ProductViewSet(viewsets.ModelViewSet):
+class PersonViewSet(viewsets.ModelViewSet):
     '''
     get -> list -> Queryset
     get -> retrieve -> Product Instance Detail View
@@ -15,3 +17,9 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Person.objects.all()
     serializer_class = PersonSerializer
     lookup_field = 'pk'
+
+    def retrieve(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        obj = get_object_or_404(Person, pk=pk)
+        data = PersonSerializer(obj, many=False).data
+        return Response(data)

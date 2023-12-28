@@ -1,8 +1,17 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
-from person.models import Person
-from person.serializer import PersonSerializer
+from django.shortcuts import render
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from person.models import Person, Profile
+from person.serializer import PersonSerializer
+from django_filters import rest_framework as filters
+from rest_framework import filters as rest_filters
+
+
+
+def show(request):
+    query = Profile.objects.prefetch_related('person').all()
+    return render(request, 'main.html', {'name': 'Mosh', 'query': query})
 
 
 @api_view(['GET', 'POST', "PUT", "DELETE"])
@@ -53,6 +62,37 @@ def person_alt_view(request, pk=None, *args, **kwargs):
 
 # ============================================================================
 from rest_framework import generics
+
+
+# ============================== this is for django_filter method-2
+class PersonFilter(filters.FilterSet):
+    class Meta:
+        model = Person
+        fields = {
+            'name': ['exact'],
+            'number': ['exact'],
+            'context': ['exact'],
+        }
+# ============================== this is for django_filter method-2
+
+
+class PersonSearch(generics.ListCreateAPIView):
+    queryset = Person.objects.all()
+    serializer_class = PersonSerializer
+    # ============================== this is for django_filter method-2 این همون متد یک هست فقط به عنوان کلاس ساخته شده وقابلیت شخصی سازی بیشتری داره
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = PersonFilter
+    # ============================== this is for django_filter method-2
+
+    # ============================== this is for django_filter method-1 میتونی به ازای هر فیلد یک پارامتر داخل یو ار ال برایش پرکنی و هر پارامتر مربوط به فیلد خودشه
+    # filter_backends = [filters.DjangoFilterBackend] #  http://localhost:8000/api/person/search/?number=1234
+    # filterset_fields = ['name', 'number', 'gender', 'context']
+    # ============================== this is for django_filter method-1
+
+    # ****************************** this is for rest_framework به این صورت کار میکنه که ی چیزی به پارامتر سرچ تو یو ار ال میدی و توی تمام فیلد ها دنبالش میگرده
+    # filter_backends = [rest_filters.SearchFilter] # http://localhost:8000/api/person/search/?search=1234
+    # search_fields = ('number',)
+    # ****************************** this is for rest_framework
 
 
 class PersonDetailsView(generics.RetrieveAPIView):
